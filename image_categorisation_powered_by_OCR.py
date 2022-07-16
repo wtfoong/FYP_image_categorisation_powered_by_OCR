@@ -13,7 +13,7 @@ from google.cloud.vision_v1 import AnnotateImageResponse
 
 ########################################## User input data ##############################################################################
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "C:/Users/rainy/OneDrive - Asia Pacific University/FYP/system/thinking-avenue-356203-9d7d01f4e556.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "C:/Users/rainy/OneDrive - Asia Pacific University/FYP/fypSystem/thinking-avenue-356203-9d7d01f4e556.json"
 
 image_folder = 'D:/g2g/canada_model/CA(for_testing)/Alberta' #insert the file path to the images here.
 
@@ -103,31 +103,9 @@ class comparison:
         break_flag = False   
         
             
-        if results:
+        if results and len(results)>2:
             if lines_to_read is None:
                 lines_to_read = len(results)
-            
-            # for i,data in enumerate(results):
-                
-            #     #the if else below decides how many rows of the OCR data will be read
-            #     if i>lines_to_read:
-            #         #move image to not sure image folder if no match is found within the lines to read
-            #         folder_processes.move_image_to_folder(image_path,not_sure_image_path)
-            #         break
-            #     else:
-                    
-            #         for category in categories:
-            #             #code below decides how much should the similarity be.
-            #             if fuzz.partial_ratio(data.lower(), category.lower())>=accuracy_percentage:
-            #                 new_path = "".join ([image_folder, "/", category])
-            #                 folder_processes.move_image_to_folder(image_path,new_path)
-            #                 break_flag = True
-            #                 break
-            #         if break_flag:
-            #             break
-            # else:
-            #     #if after all categories and results are looped no still no match, image will be moved to not sure image folder
-            #     folder_processes.move_image_to_folder(image_path,not_sure_image_path) 
             results = results[:lines_to_read] 
             for category in categories:
                 #code below decides how much should the similarity be.
@@ -152,18 +130,8 @@ class comparison:
         
         all_image_path_list = image_processes.get_all_image_path(image_folder)
         
-        # nested_image_path_list = []
-        # start_of_sub_list = 0
-        
-        # # to split the list of image paths to smaller list for async process
-        # for i in range(subProcessNumber):
-        #     if start_of_sub_list>=len(all_image_path_list):
-        #         break
-        #     end_of_sub_list = start_of_sub_list+(len(all_image_path_list)//subProcessNumber)+1
-        #     nested_image_path_list.append(all_image_path_list[start_of_sub_list:end_of_sub_list])
-        #     start_of_sub_list = end_of_sub_list
         Input = iter(all_image_path_list)   
-        nested_image_path_list = list(iter(lambda: tuple(islice(Input, subProcessNumber)), ())) # this code seperates a large list to the small tuples of the provided size 
+        nested_image_path_list = list(iter(lambda: tuple(islice(Input, subProcessNumber)), ())) # this code seperates a large list to the small tuples of the provided subProcessNumber 
             
         #async process    
         for image_sub_list in nested_image_path_list:
@@ -180,16 +148,10 @@ class comparison:
         
 
 
-
-
-
-
-#print(comparison.detect_text('D:/g2g/canada_model/CA(for_testing)/Yukon/selfie/883190_394352_selfie.jpg'))
-
 if __name__ == '__main__':     
     begin = time.time()
-    #comparison.multiprocessing_image_categorisation(image_folder,subProcessNumber)
+    comparison.multiprocessing_image_categorisation(image_folder,subProcessNumber)
    
-    print(comparison.detect_text('D:/g2g/canada_model/CA(for_testing)/Alberta/not_sure_image/826142_372089_selfie.jpg'))
+    #print(comparison.detect_text('D:/g2g/canada_model/CA(for_testing)/Alberta/not_sure_image/747427_340815.jpg'))
     end = time.time()
     print(f"Total runtime of the program is {end - begin}")
