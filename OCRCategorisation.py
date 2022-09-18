@@ -42,13 +42,33 @@ class Ui_MainWindow(object):
         
         elif not validator.validatePath(self.txtGoogleCredential.text(),"Google credential json file path is not valid or the file does not exist!"):
             flag = False
-        
-        
+        elif not validator.validatePath(self.txtImageFolder.text(),"Image folder path is not valid or the folder does not exist!"):
+            flag = False
+        elif not validator.validatePath(self.txtCategories.text(),"Category text file path is not valid or the file does not exist!"):
+            flag = False
+        elif not validator.chkIfIstxtFile(self.txtCategories.text()):
+            self.alertMessage("Category text file path does not lead to a text file!")
+            flag = False
+        elif not validator.validateCategories_txt(self.txtCategories.text()):
+            self.alertMessage("Category text file is empty!")
+            flag = False
+        elif not validator.validateAccuracyPercentage(int(self.txtAccPercentage.text())):
+            self.alertMessage("Please make sure accuracy percentage is in the range of 1 to 100!")
+            flag = False
+            
         if flag:  
             
             self.recordData()
             self.categorise()
            
+           
+    def alertMessage(self,message):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Icon.Warning)
+        msg.setText(message)
+        msg.setWindowTitle("Error")
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+        retval = msg.exec()
             
     def recordData(self):
         datalist = [self.txtGoogleCredential.text(), self.txtImageFolder.text(), self.txtCategories.text(), self.txtSubprocessNumber.text(), self.txtLinesToRead.text(), self.txtAccPercentage.text()]
