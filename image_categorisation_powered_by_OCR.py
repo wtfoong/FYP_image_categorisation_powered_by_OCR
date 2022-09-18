@@ -2,9 +2,10 @@ import io
 import json
 import multiprocessing
 import os
-import pathlib
-import shutil
 import time
+
+from backend.image_processes import image_processes
+from backend.folder_processes import folder_processes
 from rapidfuzz import fuzz,process
 from itertools import islice
 
@@ -17,7 +18,7 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "C:/Users/rainy/OneDrive - Asia P
 
 image_folder = 'D:/g2g/canada_model/CA(for_testing)/Alberta' #insert the file path to the images here.
 
-categories_txtfile = 'categories.txt'  # insert the path to the txt file that stores all the categories for the images.
+categories_txtfile = '../categories.txt'  # insert the path to the txt file that stores all the categories for the images.
 
 #the number of subprocesses allowed
 subProcessNumber=20
@@ -29,42 +30,6 @@ lines_to_read = 7
 accuracy_percentage = 60
 
 ############################################################################################################################################
-
-
-class image_processes:
-    
-    def get_all_image_path(image_folder_path):
-        ext = ['*.png', '*.jpg', '*.gif','*.jpeg']    # Add image formats here
-        all_image_path_list = []
-
-        [all_image_path_list.extend(pathlib.Path(image_folder_path).rglob(e)) for e in ext] #To get iamges of different formats 
-        all_image_path_list = sorted(all_image_path_list) #list that consist of all image path for the images in the folder
-        return all_image_path_list
-
-
-class folder_processes:
-    def get_all_categories(new_path):
-        with open(new_path, 'r') as f:
-            categories = f.readlines()
-        categories = [category.replace('\n','') for category in categories]
-        return categories
-        
-    def generate_folders_base_on_categories(categories): #to generate folders base of provided categories
-        for category in categories:
-            pathlib.Path(image_folder+'/'+category).mkdir(parents=True, exist_ok=True)
-            
-        pathlib.Path(image_folder+'/'+'not_sure_image').mkdir(parents=True, exist_ok=True)
-        pathlib.Path(image_folder+'/'+'image_with_no_text').mkdir(parents=True, exist_ok=True)
-        
-    def move_image_to_folder(image_path,new_path):
-        
-        try:
-            
-            shutil.move(str(image_path), new_path)
-        except Exception as e:
-            print(e)
-            pass
-        
 
 class comparison:
     def detect_text(path):
@@ -99,12 +64,11 @@ class comparison:
         
         results = comparison.detect_text(str(image_path))
         not_sure_image_path = "".join ([image_folder, "/", 'not_sure_image'])
-        image_with_no_text = "".join ([image_folder, "/", 'image_with_no_text'])
-        break_flag = False   
+        image_with_no_text = "".join ([image_folder, "/", 'image_with_no_text'])  
         
             
         if results and len(results)>2:
-            if lines_to_read is None:
+            if lines_to_read is None or lines_to_read==0:
                 lines_to_read = len(results)
             results = results[:lines_to_read] 
             for category in categories:
@@ -114,7 +78,6 @@ class comparison:
                     # print(image_path)
                     new_path = "".join ([image_folder, "/", category])
                     folder_processes.move_image_to_folder(image_path,new_path)
-                    break_flag = True
                     break
             else:
                 #if after all categories and results are looped no still no match, image will be moved to not sure image folder
@@ -126,7 +89,7 @@ class comparison:
                          
     def multiprocessing_image_categorisation(image_folder,subProcessNumber):
         categories = folder_processes.get_all_categories(categories_txtfile)
-        folder_processes.generate_folders_base_on_categories(categories)
+        folder_processes.generate_folders_base_on_categories(categories,image_folder)
         
         all_image_path_list = image_processes.get_all_image_path(image_folder)
         
