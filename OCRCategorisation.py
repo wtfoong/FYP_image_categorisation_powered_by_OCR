@@ -1,19 +1,26 @@
+from wsgiref import validate
+
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtGui import QIntValidator
+from PyQt6.QtWidgets import QMessageBox
+
 import image_categorisation_powered_by_OCR
+from validation import validator
 from OCRWindow import Ui_OCRWindow
+from backend.folder_processes import folder_processes
 
 
 class Ui_MainWindow(object):
     def categorise(self):
+        
         image_categorisation_powered_by_OCR.os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = self.txtGoogleCredential.text()
-        image_categorisation_powered_by_OCR.image_folder = self.txtImageFolder.text()
-        image_categorisation_powered_by_OCR.categories_txtfile = self.txtCategories.text()
-        image_categorisation_powered_by_OCR.subProcessNumber = int(self.txtSubprocessNumber.text())
-        image_categorisation_powered_by_OCR.lines_to_read = int(self.txtLinesToRead.text())
-        image_categorisation_powered_by_OCR.accuracy_percentage = int(self.txtAccPercentage.text())
+        image_folder = self.txtImageFolder.text()
+        categories_txtfile = self.txtCategories.text()
+        subProcessNumber = int(self.txtSubprocessNumber.text())
+        lines_to_read = int(self.txtLinesToRead.text())
+        accuracy_percentage = int(self.txtAccPercentage.text())
 
-        image_categorisation_powered_by_OCR.comparison.multiprocessing_image_categorisation(image_categorisation_powered_by_OCR.image_folder,image_categorisation_powered_by_OCR.subProcessNumber)
+        image_categorisation_powered_by_OCR.comparison.multiprocessing_image_categorisation(image_folder,subProcessNumber,categories_txtfile,lines_to_read,accuracy_percentage)
         
     def openOCRWindow(self):
         self.window = QtWidgets.QMainWindow()
@@ -22,7 +29,40 @@ class Ui_MainWindow(object):
         self.ui.txtGoogleCredential_2.setText(self.txtGoogleCredential.text())
         self.window.show()
         
+    def validate(self):
+        flag = True
+        if not (self.txtGoogleCredential.text() and self.txtImageFolder.text() and self.txtCategories.text() and self.txtSubprocessNumber.text() and self.txtLinesToRead.text() and self.txtAccPercentage.text()):
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QMessageBox.Icon.Warning)
+            msg.setText("Please fill up all fields!")
+            msg.setWindowTitle("Error")
+            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+            retval = msg.exec()
+            flag = False
         
+        elif not validator.validatePath(self.txtGoogleCredential.text(),"Google credential json file path is not valid or the file does not exist!"):
+            flag = False
+        
+        
+        if flag:  
+            
+            self.recordData()
+            self.categorise()
+           
+            
+    def recordData(self):
+        datalist = [self.txtGoogleCredential.text(), self.txtImageFolder.text(), self.txtCategories.text(), self.txtSubprocessNumber.text(), self.txtLinesToRead.text(), self.txtAccPercentage.text()]
+        folder_processes.writeToFile("data.txt",datalist)
+        
+    def readData(self):
+        datalist = folder_processes.get_all_categories("data.txt")
+        self.txtGoogleCredential.setText(datalist[0])
+        self.txtImageFolder.setText(datalist[1])
+        self.txtCategories.setText(datalist[2])
+        self.txtSubprocessNumber.setText(datalist[3])
+        self.txtLinesToRead.setText(datalist[4])
+        self.txtAccPercentage.setText(datalist[5])
+    
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1081, 353)
@@ -34,7 +74,7 @@ class Ui_MainWindow(object):
         font.setPointSize(12)
         self.btnOCRWindow.setFont(font)
         self.btnOCRWindow.setObjectName("btnOCRWindow")
-        self.btnCategorise = QtWidgets.QPushButton(self.centralwidget,clicked = lambda:self.categorise())
+        self.btnCategorise = QtWidgets.QPushButton(self.centralwidget,clicked = lambda:self.validate())
         self.btnCategorise.setGeometry(QtCore.QRect(870, 250, 141, 61))
         font = QtGui.QFont()
         font.setPointSize(12)
@@ -161,8 +201,9 @@ class Ui_MainWindow(object):
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
-
+    
         self.retranslateUi(MainWindow)
+        self.readData()
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):

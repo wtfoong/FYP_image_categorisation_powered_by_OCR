@@ -14,11 +14,11 @@ from google.cloud.vision_v1 import AnnotateImageResponse
 
 ########################################## User input data ##############################################################################
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "C:/Users/rainy/OneDrive - Asia Pacific University/FYP/fypSystem/thinking-avenue-356203-9d7d01f4e556.json"
+# os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "C:/Users/rainy/OneDrive - Asia Pacific University/FYP/fypSystem/thinking-avenue-356203-9d7d01f4e556.json"
 
 image_folder = 'D:/g2g/canada_model/CA(for_testing)/Alberta' #insert the file path to the images here.
 
-categories_txtfile = '../categories.txt'  # insert the path to the txt file that stores all the categories for the images.
+categories_txtfile = None  # insert the path to the txt file that stores all the categories for the images.
 
 #the number of subprocesses allowed
 subProcessNumber=20
@@ -56,7 +56,7 @@ class comparison:
             print(e)
             raise SystemExit("Error")
            
-    def categorise_image_by_category(image_path,lines_to_read):
+    def categorise_image_by_category(image_path,lines_to_read,categories_txtfile,image_folder,accuracy_percentage):
         new_path=''
         results=''
 
@@ -87,7 +87,7 @@ class comparison:
             # if result is None, then move image to image with no text folder
             folder_processes.move_image_to_folder(image_path,image_with_no_text)                    
                          
-    def multiprocessing_image_categorisation(image_folder,subProcessNumber):
+    def multiprocessing_image_categorisation(image_folder,subProcessNumber,categories_txtfile,lines_to_read,accuracy_percentage):
         categories = folder_processes.get_all_categories(categories_txtfile)
         folder_processes.generate_folders_base_on_categories(categories,image_folder)
         
@@ -100,7 +100,7 @@ class comparison:
         for image_sub_list in nested_image_path_list:
             Pros = []
             for image_path in image_sub_list:
-                p1 = multiprocessing.Process(target=comparison.categorise_image_by_category,args=(image_path,lines_to_read)) 
+                p1 = multiprocessing.Process(target=comparison.categorise_image_by_category,args=(image_path,lines_to_read,categories_txtfile,image_folder,accuracy_percentage)) 
                 Pros.append(p1)
                 p1.start()
                 
@@ -113,7 +113,7 @@ class comparison:
 
 if __name__ == '__main__':     
     begin = time.time()
-    comparison.multiprocessing_image_categorisation(image_folder,subProcessNumber)
+    comparison.multiprocessing_image_categorisation(image_folder,subProcessNumber,categories_txtfile,lines_to_read,accuracy_percentage)
    
     #print(comparison.detect_text('D:/g2g/canada_model/CA(for_testing)/Alberta/not_sure_image/747427_340815.jpg'))
     end = time.time()

@@ -24,3 +24,11 @@ class folder_processes:
         except Exception as e:
             print(e)
             pass
+        
+        
+    def writeToFile(file_path,data):
+        with open(file_path,'w') as f:
+            f.write('\n'.join(data))
+        
+
+        

@@ -7,6 +7,9 @@
 
 
 from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6.QtWidgets import QMessageBox
+from validation import validator
+
 import image_categorisation_powered_by_OCR as imgc
 
 
@@ -17,9 +20,29 @@ class Ui_OCRWindow(object):
         
     def ocrImage(self):
        imgc.os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = self.txtGoogleCredential_2.text()
-       OCRResult = "\n".join([str(x) for x in imgc.comparison.detect_text(self.txtImage.text())])
-       print(OCRResult)
+       if imgc.comparison.detect_text(self.txtImage.text()):
+            OCRResult = "\n".join([str(x) for x in imgc.comparison.detect_text(self.txtImage.text())])
+       else:
+           OCRResult = "No Text in image!"
        self.txtAOCRResult.setText(OCRResult)
+       
+    def validate(self):
+        flag = True
+        if not (self.txtGoogleCredential_2.text() and self.txtImage.text()):
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QMessageBox.Icon.Warning)
+            msg.setText("Please fill up all fields!")
+            msg.setWindowTitle("Error")
+            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+            retval = msg.exec()
+            flag = False
+        elif not validator.validatePath(self.txtImage.text(),"Image file path is not valid or the image does not exist!"):
+            flag = False
+        elif not validator.validateImage(self.txtImage.text(),"File is not an image"):
+            flag = False
+            
+        if flag:
+            self.ocrImage()
         
     def setupUi(self, OCRWindow, MainWindow):
         MainWindow.hide()
@@ -83,7 +106,7 @@ class Ui_OCRWindow(object):
         self.txtAOCRResult.setFont(font)
         self.txtAOCRResult.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.LinksAccessibleByMouse|QtCore.Qt.TextInteractionFlag.TextSelectableByMouse)
         self.txtAOCRResult.setObjectName("txtAOCRResult")
-        self.btnOCR = QtWidgets.QPushButton(self.centralwidget, clicked = lambda: self.ocrImage())
+        self.btnOCR = QtWidgets.QPushButton(self.centralwidget, clicked = lambda: self.validate())
         self.btnOCR.setGeometry(QtCore.QRect(880, 230, 141, 61))
         font = QtGui.QFont()
         font.setPointSize(12)
