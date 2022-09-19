@@ -34,35 +34,35 @@ accuracy_percentage = 60
 class comparison:
     def detect_text(path):
         """Detects text in the image."""
-
-
-        client = vision.ImageAnnotatorClient()
-
-        with io.open(path, 'rb') as image_file:
-            content = image_file.read()
-        image = vision.Image(content=content)
-
-
-        response = client.document_text_detection(image=image,image_context={"language_hints": ["id"]})
-        response_json = AnnotateImageResponse.to_json(response)
-        response = json.loads(response_json)
-
         try:
+            client = vision.ImageAnnotatorClient()
+
+            with io.open(path, 'rb') as image_file:
+                content = image_file.read()
+            image = vision.Image(content=content)
+
+
+            response = client.document_text_detection(image=image,image_context={"language_hints": ["id"]})
+            response_json = AnnotateImageResponse.to_json(response)
+            response = json.loads(response_json)
             if response['textAnnotations']:
                 return response['fullTextAnnotation']['text'].split('\n')
             else:
                 return None
-        except Exception as e:
-            print(e)
-            raise SystemExit("Error")
+        except:
+            #print(e)
+            raise 
            
-    def categorise_image_by_category(image_path,lines_to_read,categories_txtfile,image_folder,accuracy_percentage):
+    def categorise_image_by_category(image_path,lines_to_read,categories_txtfile,image_folder,accuracy_percentage,q):
         new_path=''
         results=''
 
         categories = folder_processes.get_all_categories(categories_txtfile)
-        
-        results = comparison.detect_text(str(image_path))
+        try:
+            results = comparison.detect_text(str(image_path))
+        except Exception as e:
+            q.put(e)
+            return e
         not_sure_image_path = "".join ([image_folder, "/", 'not_sure_image'])
         image_with_no_text = "".join ([image_folder, "/", 'image_with_no_text'])  
         
@@ -85,11 +85,14 @@ class comparison:
         
         else:
             # if result is None, then move image to image with no text folder
-            folder_processes.move_image_to_folder(image_path,image_with_no_text)                    
+            folder_processes.move_image_to_folder(image_path,image_with_no_text)      
+        q.put(False)              
                          
     def multiprocessing_image_categorisation(image_folder,subProcessNumber,categories_txtfile,lines_to_read,accuracy_percentage):
         categories = folder_processes.get_all_categories(categories_txtfile)
         folder_processes.generate_folders_base_on_categories(categories,image_folder)
+        flag = True
+        error = None
         
         all_image_path_list = image_processes.get_all_image_path(image_folder)
         
@@ -99,15 +102,30 @@ class comparison:
         #async process    
         for image_sub_list in nested_image_path_list:
             Pros = []
+            q = multiprocessing.Queue()
             for image_path in image_sub_list:
-                p1 = multiprocessing.Process(target=comparison.categorise_image_by_category,args=(image_path,lines_to_read,categories_txtfile,image_folder,accuracy_percentage)) 
+                p1 = multiprocessing.Process(target=comparison.categorise_image_by_category,args=(image_path,lines_to_read,categories_txtfile,image_folder,accuracy_percentage,q)) 
                 Pros.append(p1)
                 p1.start()
                 
-            for t in Pros:
+            
+            for p in Pros:
+                if q.get():
+                    error = q.get()
+                    flag = False
+                    break
+                       
+            if not flag:
+                for z in Pros:
+                    z.kill()           
+                   
+            for t in Pros: 
                 t.join()
             
-        print("Image all categorised")
+           
+        if not flag:    
+            return error
+        else: return None
         
 
 

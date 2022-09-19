@@ -1,5 +1,5 @@
-C:/Users/rainy/OneDrive - Asia Pacific University/FYP/fypSystem/thinking-avenue-356203-9d7d01f4e556.json
-D:\g2g\canada_model\CA(for_testing)\Yukon
+C:/Users/rainy/OneDrive - Asia Pacific University/FYP/fypSystem/thinking-avenue-356203-9d7d01f4e556 copy.json
+D:/g2g/canada_model/CA(for_testing)/Yukon
 categories.txt
 20
 7

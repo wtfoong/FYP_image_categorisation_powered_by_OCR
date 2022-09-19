@@ -6,18 +6,6 @@ from PyQt6.QtWidgets import QMessageBox
 
 class validator:
     
-    def validatePath(path,message):
-        if not pathlib.Path(path).exists():
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Icon.Warning)
-            msg.setText(message)
-            msg.setWindowTitle("Error")
-            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
-            retval = msg.exec()
-            return pathlib.Path(path).exists()
-        else: 
-            return pathlib.Path(path).exists()
-            
     
     def validateImageFolderPath(image_folder_path):
         result = image_processes.get_all_image_path(image_folder_path)
@@ -44,20 +32,10 @@ class validator:
         
     def validateAccuracyPercentage(percentage):
         if percentage>100 or percentage<0:
-            return False
+            return False #make sure percentage is between 1 to 100
         else: return True
     
-    def validateImage(image_path,message):
-        if imghdr.what(image_path):
-            return True
-        else: 
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Icon.Warning)
-            msg.setText(message)
-            msg.setWindowTitle("Error")
-            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
-            retval = msg.exec()
-            return False
+    
         
         
 if __name__ == "__main__":       

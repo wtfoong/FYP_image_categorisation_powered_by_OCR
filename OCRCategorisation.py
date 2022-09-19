@@ -2,7 +2,7 @@ from wsgiref import validate
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtGui import QIntValidator
-from PyQt6.QtWidgets import QMessageBox
+from PyQt6.QtWidgets import QMessageBox,QFileDialog
 
 import image_categorisation_powered_by_OCR
 from validation import validator
@@ -20,7 +20,17 @@ class Ui_MainWindow(object):
         lines_to_read = int(self.txtLinesToRead.text())
         accuracy_percentage = int(self.txtAccPercentage.text())
 
-        image_categorisation_powered_by_OCR.comparison.multiprocessing_image_categorisation(image_folder,subProcessNumber,categories_txtfile,lines_to_read,accuracy_percentage)
+        error=image_categorisation_powered_by_OCR.comparison.multiprocessing_image_categorisation(image_folder,subProcessNumber,categories_txtfile,lines_to_read,accuracy_percentage)
+        
+        if error:
+            self.alertMessage(str(error))
+        else:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Icon.Information)
+            msg.setText("All image categorised")
+            msg.setWindowTitle("All done!")
+            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+            retval = msg.exec()
         
     def openOCRWindow(self):
         self.window = QtWidgets.QMainWindow()
@@ -28,6 +38,7 @@ class Ui_MainWindow(object):
         self.ui.setupUi(self.window,MainWindow)
         self.ui.txtGoogleCredential_2.setText(self.txtGoogleCredential.text())
         self.window.show()
+        MainWindow.hide()
         
     def validate(self):
         flag = True
@@ -39,12 +50,8 @@ class Ui_MainWindow(object):
             msg.setStandardButtons(QMessageBox.StandardButton.Ok)
             retval = msg.exec()
             flag = False
-        
-        elif not validator.validatePath(self.txtGoogleCredential.text(),"Google credential json file path is not valid or the file does not exist!"):
-            flag = False
-        elif not validator.validatePath(self.txtImageFolder.text(),"Image folder path is not valid or the folder does not exist!"):
-            flag = False
-        elif not validator.validatePath(self.txtCategories.text(),"Category text file path is not valid or the file does not exist!"):
+        elif not validator.validateImageFolderPath(self.txtImageFolder.text()):
+            self.alertMessage("Image folder is empty!")
             flag = False
         elif not validator.chkIfIstxtFile(self.txtCategories.text()):
             self.alertMessage("Category text file path does not lead to a text file!")
@@ -75,37 +82,59 @@ class Ui_MainWindow(object):
         folder_processes.writeToFile("data.txt",datalist)
         
     def readData(self):
-        datalist = folder_processes.get_all_categories("data.txt")
-        self.txtGoogleCredential.setText(datalist[0])
-        self.txtImageFolder.setText(datalist[1])
-        self.txtCategories.setText(datalist[2])
-        self.txtSubprocessNumber.setText(datalist[3])
-        self.txtLinesToRead.setText(datalist[4])
-        self.txtAccPercentage.setText(datalist[5])
-    
+        try:
+            datalist = folder_processes.get_all_categories("data.txt")
+            self.txtGoogleCredential.setText(datalist[0])
+            self.txtImageFolder.setText(datalist[1])
+            self.txtCategories.setText(datalist[2])
+            self.txtSubprocessNumber.setText(datalist[3])
+            self.txtLinesToRead.setText(datalist[4])
+            self.txtAccPercentage.setText(datalist[5])
+        except:
+            pass
+        
+    def openFile(self,message,rule):
+        file = QFileDialog.getOpenFileName(None,message, "C:/", rule)
+        return file
+    def openFolder(self,message,rule):
+        file = QtWidgets.QFileDialog.getExistingDirectory(None, message,"C:/")
+        return file
+       
+    def getCategoriseTxt(self,message,rule):
+        file = self.openFile(message,rule)
+        self.txtCategories.setText(file[0])
+    def getGoogleCredentialJson(self,message,rule):
+        file = self.openFile(message,rule)
+        self.txtGoogleCredential.setText(file[0])
+    def getImageFolder(self,message,rule):
+        folder = self.openFolder(message,rule)
+        
+        self.txtImageFolder.setText(folder)
+        
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1081, 353)
+        MainWindow.setAutoFillBackground(True)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
-        self.btnOCRWindow = QtWidgets.QPushButton(self.centralwidget, clicked = lambda: self.openOCRWindow())
+        self.btnOCRWindow = QtWidgets.QPushButton(self.centralwidget,clicked = lambda: self.openOCRWindow())
         self.btnOCRWindow.setGeometry(QtCore.QRect(20, 250, 141, 61))
         font = QtGui.QFont()
         font.setPointSize(12)
         self.btnOCRWindow.setFont(font)
         self.btnOCRWindow.setObjectName("btnOCRWindow")
-        self.btnCategorise = QtWidgets.QPushButton(self.centralwidget,clicked = lambda:self.validate())
+        self.btnCategorise = QtWidgets.QPushButton(self.centralwidget, clicked = lambda:self.validate())
         self.btnCategorise.setGeometry(QtCore.QRect(870, 250, 141, 61))
         font = QtGui.QFont()
         font.setPointSize(12)
         self.btnCategorise.setFont(font)
         self.btnCategorise.setObjectName("btnCategorise")
         self.widget = QtWidgets.QWidget(self.centralwidget)
-        self.widget.setGeometry(QtCore.QRect(11, 21, 1061, 182))
+        self.widget.setGeometry(QtCore.QRect(14, 33, 1051, 188))
         self.widget.setObjectName("widget")
-        self.formLayout = QtWidgets.QFormLayout(self.widget)
-        self.formLayout.setContentsMargins(0, 0, 0, 0)
-        self.formLayout.setObjectName("formLayout")
+        self.gridLayout = QtWidgets.QGridLayout(self.widget)
+        self.gridLayout.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout.setObjectName("gridLayout")
         self.label = QtWidgets.QLabel(self.widget)
         self.label.setEnabled(True)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
@@ -117,13 +146,25 @@ class Ui_MainWindow(object):
         font.setPointSize(12)
         self.label.setFont(font)
         self.label.setObjectName("label")
-        self.formLayout.setWidget(0, QtWidgets.QFormLayout.ItemRole.LabelRole, self.label)
+        self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
         self.txtGoogleCredential = QtWidgets.QLineEdit(self.widget)
         font = QtGui.QFont()
         font.setPointSize(12)
         self.txtGoogleCredential.setFont(font)
+        self.txtGoogleCredential.setReadOnly(True)
         self.txtGoogleCredential.setObjectName("txtGoogleCredential")
-        self.formLayout.setWidget(0, QtWidgets.QFormLayout.ItemRole.FieldRole, self.txtGoogleCredential)
+        self.gridLayout.addWidget(self.txtGoogleCredential, 0, 1, 1, 1)
+        self.btnGoogleJson = QtWidgets.QPushButton(self.widget, clicked= lambda: self.getGoogleCredentialJson("Select Google credential json file","Json file (*.json)"))
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.btnGoogleJson.sizePolicy().hasHeightForWidth())
+        self.btnGoogleJson.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.btnGoogleJson.setFont(font)
+        self.btnGoogleJson.setObjectName("btnGoogleJson")
+        self.gridLayout.addWidget(self.btnGoogleJson, 0, 2, 1, 1)
         self.label_3 = QtWidgets.QLabel(self.widget)
         self.label_3.setEnabled(True)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
@@ -135,13 +176,20 @@ class Ui_MainWindow(object):
         font.setPointSize(12)
         self.label_3.setFont(font)
         self.label_3.setObjectName("label_3")
-        self.formLayout.setWidget(1, QtWidgets.QFormLayout.ItemRole.LabelRole, self.label_3)
+        self.gridLayout.addWidget(self.label_3, 1, 0, 1, 1)
         self.txtImageFolder = QtWidgets.QLineEdit(self.widget)
         font = QtGui.QFont()
         font.setPointSize(12)
         self.txtImageFolder.setFont(font)
+        self.txtImageFolder.setReadOnly(True)
         self.txtImageFolder.setObjectName("txtImageFolder")
-        self.formLayout.setWidget(1, QtWidgets.QFormLayout.ItemRole.FieldRole, self.txtImageFolder)
+        self.gridLayout.addWidget(self.txtImageFolder, 1, 1, 1, 1)
+        self.btnImageFolder = QtWidgets.QPushButton(self.widget, clicked= lambda: self.getImageFolder("Select image folder",""))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.btnImageFolder.setFont(font)
+        self.btnImageFolder.setObjectName("btnImageFolder")
+        self.gridLayout.addWidget(self.btnImageFolder, 1, 2, 1, 1)
         self.label_2 = QtWidgets.QLabel(self.widget)
         self.label_2.setEnabled(True)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
@@ -153,13 +201,22 @@ class Ui_MainWindow(object):
         font.setPointSize(12)
         self.label_2.setFont(font)
         self.label_2.setObjectName("label_2")
-        self.formLayout.setWidget(2, QtWidgets.QFormLayout.ItemRole.LabelRole, self.label_2)
+        self.gridLayout.addWidget(self.label_2, 2, 0, 1, 1)
         self.txtCategories = QtWidgets.QLineEdit(self.widget)
         font = QtGui.QFont()
         font.setPointSize(12)
         self.txtCategories.setFont(font)
+        self.txtCategories.setReadOnly(True)
         self.txtCategories.setObjectName("txtCategories")
-        self.formLayout.setWidget(2, QtWidgets.QFormLayout.ItemRole.FieldRole, self.txtCategories)
+        self.gridLayout.addWidget(self.txtCategories, 2, 1, 1, 1)
+        self.btnCategoryTxt = QtWidgets.QPushButton(self.widget, clicked = lambda: self.getCategoriseTxt("Open txt file","Text files (*.txt)"))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.btnCategoryTxt.setFont(font)
+        icon = QtGui.QIcon.fromTheme("folder")
+        self.btnCategoryTxt.setIcon(icon)
+        self.btnCategoryTxt.setObjectName("btnCategoryTxt")
+        self.gridLayout.addWidget(self.btnCategoryTxt, 2, 2, 1, 1)
         self.label_4 = QtWidgets.QLabel(self.widget)
         self.label_4.setEnabled(True)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
@@ -171,14 +228,13 @@ class Ui_MainWindow(object):
         font.setPointSize(12)
         self.label_4.setFont(font)
         self.label_4.setObjectName("label_4")
-        self.formLayout.setWidget(3, QtWidgets.QFormLayout.ItemRole.LabelRole, self.label_4)
+        self.gridLayout.addWidget(self.label_4, 3, 0, 1, 1)
         self.txtSubprocessNumber = QtWidgets.QLineEdit(self.widget)
         font = QtGui.QFont()
         font.setPointSize(12)
         self.txtSubprocessNumber.setFont(font)
-        self.txtSubprocessNumber.setValidator(QIntValidator(0, 999))
         self.txtSubprocessNumber.setObjectName("txtSubprocessNumber")
-        self.formLayout.setWidget(3, QtWidgets.QFormLayout.ItemRole.FieldRole, self.txtSubprocessNumber)
+        self.gridLayout.addWidget(self.txtSubprocessNumber, 3, 1, 1, 1)
         self.label_5 = QtWidgets.QLabel(self.widget)
         self.label_5.setEnabled(True)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
@@ -190,14 +246,13 @@ class Ui_MainWindow(object):
         font.setPointSize(12)
         self.label_5.setFont(font)
         self.label_5.setObjectName("label_5")
-        self.formLayout.setWidget(4, QtWidgets.QFormLayout.ItemRole.LabelRole, self.label_5)
+        self.gridLayout.addWidget(self.label_5, 4, 0, 1, 1)
         self.txtLinesToRead = QtWidgets.QLineEdit(self.widget)
-        self.txtLinesToRead.setValidator(QIntValidator(0, 999))
         font = QtGui.QFont()
         font.setPointSize(12)
         self.txtLinesToRead.setFont(font)
         self.txtLinesToRead.setObjectName("txtLinesToRead")
-        self.formLayout.setWidget(4, QtWidgets.QFormLayout.ItemRole.FieldRole, self.txtLinesToRead)
+        self.gridLayout.addWidget(self.txtLinesToRead, 4, 1, 1, 1)
         self.label_6 = QtWidgets.QLabel(self.widget)
         self.label_6.setEnabled(True)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
@@ -209,19 +264,18 @@ class Ui_MainWindow(object):
         font.setPointSize(12)
         self.label_6.setFont(font)
         self.label_6.setObjectName("label_6")
-        self.formLayout.setWidget(5, QtWidgets.QFormLayout.ItemRole.LabelRole, self.label_6)
+        self.gridLayout.addWidget(self.label_6, 5, 0, 1, 1)
         self.txtAccPercentage = QtWidgets.QLineEdit(self.widget)
         font = QtGui.QFont()
         font.setPointSize(12)
         self.txtAccPercentage.setFont(font)
         self.txtAccPercentage.setObjectName("txtAccPercentage")
-        self.txtAccPercentage.setValidator(QIntValidator(0, 999))
-        self.formLayout.setWidget(5, QtWidgets.QFormLayout.ItemRole.FieldRole, self.txtAccPercentage)
+        self.gridLayout.addWidget(self.txtAccPercentage, 5, 1, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
-    
+
         self.retranslateUi(MainWindow)
         self.readData()
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -233,16 +287,19 @@ class Ui_MainWindow(object):
         self.btnCategorise.setText(_translate("MainWindow", "Categorise"))
         self.label.setText(_translate("MainWindow", "Google Credential json file path"))
         self.txtGoogleCredential.setPlaceholderText(_translate("MainWindow", "File path to google credential json file"))
+        self.btnGoogleJson.setText(_translate("MainWindow", "..."))
         self.label_3.setText(_translate("MainWindow", "Image folder path"))
         self.txtImageFolder.setPlaceholderText(_translate("MainWindow", "Path to images to be categorised"))
+        self.btnImageFolder.setText(_translate("MainWindow", "..."))
         self.label_2.setText(_translate("MainWindow", "Categories text file path"))
         self.txtCategories.setPlaceholderText(_translate("MainWindow", "Path to text file that stores categories"))
+        self.btnCategoryTxt.setText(_translate("MainWindow", "..."))
         self.label_4.setText(_translate("MainWindow", "Subprocess number"))
         self.txtSubprocessNumber.setPlaceholderText(_translate("MainWindow", "Number of sub-processes, determines the speed of categorisation"))
         self.label_5.setText(_translate("MainWindow", "Lines to read"))
         self.txtLinesToRead.setPlaceholderText(_translate("MainWindow", "Number of lines to read from OCR data and compare to category, leave blank to read all"))
         self.label_6.setText(_translate("MainWindow", "Accuracy Percentage"))
-        self.txtAccPercentage.setPlaceholderText(_translate("MainWindow", "How accurate the OCR data need to be in compare to the category, decides how accurate the result of the system."))
+        self.txtAccPercentage.setPlaceholderText(_translate("MainWindow", "How accurate the OCR data need to be in compare to the category, decides accuracy of the result"))
 
 
     
