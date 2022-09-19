@@ -8,6 +8,7 @@
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtWidgets import QMessageBox,QFileDialog
+from validation import validator
 
 import image_categorisation_powered_by_OCR as imgc
 
@@ -42,6 +43,8 @@ class Ui_OCRWindow(object):
             msg.setWindowTitle("Error")
             msg.setStandardButtons(QMessageBox.StandardButton.Ok)
             retval = msg.exec()
+            flag = False
+        elif not validator.validatePath(self.txtImage.text(),"Image file path is not valid or the image does not exist!"):
             flag = False
        
         if flag:

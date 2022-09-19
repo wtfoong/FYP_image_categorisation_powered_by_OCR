@@ -6,6 +6,17 @@ from PyQt6.QtWidgets import QMessageBox
 
 class validator:
     
+    def validatePath(path,message):
+        if not pathlib.Path(path).exists():
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Icon.Warning)
+            msg.setText(message)
+            msg.setWindowTitle("Error")
+            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+            retval = msg.exec()
+            return pathlib.Path(path).exists()
+        else: 
+            return pathlib.Path(path).exists()
     
     def validateImageFolderPath(image_folder_path):
         result = image_processes.get_all_image_path(image_folder_path)

@@ -50,6 +50,12 @@ class Ui_MainWindow(object):
             msg.setStandardButtons(QMessageBox.StandardButton.Ok)
             retval = msg.exec()
             flag = False
+        elif not validator.validatePath(self.txtGoogleCredential.text(),"Google credential json file path is not valid or the file does not exist!"):
+            flag = False
+        elif not validator.validatePath(self.txtImageFolder.text(),"Image folder path is not valid or the folder does not exist!"):
+            flag = False
+        elif not validator.validatePath(self.txtCategories.text(),"Category text file path is not valid or the file does not exist!"):
+            flag = False
         elif not validator.validateImageFolderPath(self.txtImageFolder.text()):
             self.alertMessage("Image folder is empty!")
             flag = False
