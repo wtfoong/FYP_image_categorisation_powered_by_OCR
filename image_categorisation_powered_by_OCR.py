@@ -96,6 +96,11 @@ class comparison:
         
         all_image_path_list = image_processes.get_all_image_path(image_folder)
         
+        try:
+            results = comparison.detect_text(str(all_image_path_list[0]))
+        except Exception as e:
+            return e
+        
         Input = iter(all_image_path_list)   
         nested_image_path_list = list(iter(lambda: tuple(islice(Input, subProcessNumber)), ())) # this code seperates a large list to the small tuples of the provided subProcessNumber 
             
