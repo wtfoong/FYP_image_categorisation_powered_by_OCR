@@ -48,6 +48,3 @@ class validator:
     
     
         
-        
-if __name__ == "__main__":       
-    print(validator.validateImage("D:\g2g\canada_model\CA(for_testing)\Yukon\image_with_no_text\883190_394352_selfie.jpg"))

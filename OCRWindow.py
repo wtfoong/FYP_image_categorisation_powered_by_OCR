@@ -176,11 +176,11 @@ class Ui_OCRWindow(object):
     
 
 
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    OCRWindow = QtWidgets.QMainWindow()
-    ui = Ui_OCRWindow()
-    ui.setupUi(OCRWindow)
-    OCRWindow.show()
-    sys.exit(app.exec())
+# if __name__ == "__main__":
+#     import sys
+#     app = QtWidgets.QApplication(sys.argv)
+#     OCRWindow = QtWidgets.QMainWindow()
+#     ui = Ui_OCRWindow()
+#     ui.setupUi(OCRWindow)
+#     OCRWindow.show()
+#     sys.exit(app.exec())

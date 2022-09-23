@@ -3,4 +3,4 @@ D:/g2g/canada_model/CA(for_testing)/Yukon
 categories.txt
 20
 7
-100
+60
