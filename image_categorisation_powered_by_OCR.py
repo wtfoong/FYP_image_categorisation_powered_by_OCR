@@ -129,7 +129,7 @@ class comparison:
                 
             try:
                 
-                signal.emit(str(i) +" of "+str(totalProcess)+" done.")
+                signal.emit(str(i+1) +" of "+str(totalProcess)+" done.")
             except Exception as e:
                 print(e)
                 pass

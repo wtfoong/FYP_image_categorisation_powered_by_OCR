@@ -46,7 +46,7 @@ class Worker(QObject):
             self.finished.emit() 
         except Exception as e:
             self.errormessage.emit(str(e))
-            self.finished.emit() 
+            
 
 
 
@@ -100,13 +100,18 @@ class Ui_MainWindow(object):
             # Step 4: Move worker to the thread
             self.worker.moveToThread(self.thread)
             # Step 5: Connect signals and slots
-            
+
             self.thread.started.connect(partial(self.worker.run,self))
             self.worker.errormessage.connect(self.erroralert)
+            self.worker.errormessage.connect(self.thread.quit)
+            self.worker.errormessage.connect(self.worker.deleteLater)
             self.worker.progress.connect(self.loading)
             self.worker.finished.connect(self.thread.quit)
             self.worker.finished.connect(self.worker.deleteLater)
+            self.worker.finished.connect(self.alldone)
             self.thread.finished.connect(self.thread.deleteLater)
+            
+            
             
             # Step 6: Start the thread
             self.thread.start()
@@ -124,9 +129,7 @@ class Ui_MainWindow(object):
                 self.enableButtons
             )
             
-            self.thread.finished.connect(
-                self.alldone
-            )
+            
     def loading(self,message):
         self.txtProcessing.show()
         self.txtProcessing.setText(message)
