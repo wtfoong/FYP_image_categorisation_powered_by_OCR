@@ -127,6 +127,9 @@ class Ui_MainWindow(object):
             
             self.thread.finished.connect(
                 self.progressBar.hide
+            ) 
+            self.thread.finished.connect(
+                self.lblProgress.hide
             )  
             self.thread.finished.connect(
                 self.enableUI
@@ -137,6 +140,8 @@ class Ui_MainWindow(object):
         self.progressBar.show()
         self.progressBar.setRange(0,total)
         self.progressBar.setValue(current)
+        self.lblProgress.show()
+        self.lblProgress.setText("Image categorising, "+str(current)+"/"+str(total)+" batches is categorised.")
         
     def erroralert(self,message):
         self.alertMessage(message)
@@ -367,6 +372,21 @@ class Ui_MainWindow(object):
         self.progressBar.setProperty("value", 24)
         self.progressBar.setObjectName("progressBar")
         self.progressBar.hide()
+        self.lblProgress = QtWidgets.QLabel(self.centralwidget)
+        self.lblProgress.setEnabled(True)
+        self.lblProgress.setGeometry(QtCore.QRect(245, 280, 601, 25))
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.lblProgress.sizePolicy().hasHeightForWidth())
+        self.lblProgress.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.lblProgress.setFont(font)
+        self.lblProgress.setText("")
+        self.lblProgress.setWordWrap(True)
+        self.lblProgress.setObjectName("lblProgress")
+        self.lblProgress.hide()
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")

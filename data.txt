@@ -1,6 +1,6 @@
 C:/Users/rainy/OneDrive - Asia Pacific University/FYP/fypSystem/thinking-avenue-356203-9d7d01f4e556.json
-D:/g2g/canada_model/CA(for_testing)/Alberta
+D:/g2g/canada_model/CA(for_testing)/British Columbia/doc
 C:/Users/rainy/OneDrive - Asia Pacific University/FYP/fypSystem/categories.txt
 20
 7
-60
+80

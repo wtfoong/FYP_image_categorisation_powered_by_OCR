@@ -130,7 +130,7 @@ class comparison:
             try:
                 signal.emit(i, totalProcess)
             except Exception as e:
-                print(e)
+                #print(e)
                 pass
             
            
@@ -142,7 +142,8 @@ class comparison:
 
 if __name__ == '__main__':     
     begin = time.time()
-    comparison.multiprocessing_image_categorisation(image_folder,subProcessNumber,categories_txtfile,lines_to_read,accuracy_percentage)
+    signal = None
+    comparison.multiprocessing_image_categorisation(image_folder,subProcessNumber,categories_txtfile,lines_to_read,accuracy_percentage,signal)
    
     #print(comparison.detect_text('D:/g2g/canada_model/CA(for_testing)/Alberta/not_sure_image/747427_340815.jpg'))
     end = time.time()
