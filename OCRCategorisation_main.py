@@ -14,7 +14,7 @@ from functools import partial
 
 class Worker(QObject):
     finished = pyqtSignal()
-    progress = pyqtSignal(str)
+    progress = pyqtSignal(int,int)
     errormessage = pyqtSignal(str)
     
     def alertMessage(self,message):
@@ -121,18 +121,22 @@ class Ui_MainWindow(object):
             self.btnCategoryTxt.setEnabled(False)
             self.btnGoogleJson.setEnabled(False)
             self.btnImageFolder.setEnabled(False)
+            self.txtSubprocessNumber.setEnabled(False)
+            self.txtLinesToRead.setEnabled(False)
+            self.txtAccPercentage.setEnabled(False)
             
             self.thread.finished.connect(
-                self.txtProcessing.hide
+                self.progressBar.hide
             )  
             self.thread.finished.connect(
-                self.enableButtons
+                self.enableUI
             )
             
             
-    def loading(self,message):
-        self.txtProcessing.show()
-        self.txtProcessing.setText(message)
+    def loading(self,current,total):
+        self.progressBar.show()
+        self.progressBar.setRange(0,total)
+        self.progressBar.setValue(current)
         
     def erroralert(self,message):
         self.alertMessage(message)
@@ -144,11 +148,15 @@ class Ui_MainWindow(object):
         msg.setStandardButtons(QMessageBox.StandardButton.Ok)
         retval = msg.exec()   
           
-    def enableButtons(self):
+    def enableUI(self):
         self.btnCategorise.setEnabled(True)
         self.btnCategoryTxt.setEnabled(True)
         self.btnGoogleJson.setEnabled(True)
         self.btnImageFolder.setEnabled(True)
+        self.txtSubprocessNumber.setEnabled(True)
+        self.txtLinesToRead.setEnabled(True)
+        self.txtAccPercentage.setEnabled(True)
+        
     def alertMessage(self,message):
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Icon.Warning)
@@ -354,15 +362,11 @@ class Ui_MainWindow(object):
         self.txtAccPercentage.setFont(font)
         self.txtAccPercentage.setObjectName("txtAccPercentage")
         self.gridLayout.addWidget(self.txtAccPercentage, 5, 1, 1, 1)
-        self.txtProcessing = QtWidgets.QLineEdit(self.centralwidget)
-        self.txtProcessing.setGeometry(QtCore.QRect(290, 250, 481, 25))
-        font = QtGui.QFont()
-        font.setPointSize(12)
-        self.txtProcessing.setFont(font)
-        self.txtProcessing.setReadOnly(True)
-        self.txtProcessing.setPlaceholderText("")
-        self.txtProcessing.setObjectName("txtProcessing")
-        self.txtProcessing.hide()
+        self.progressBar = QtWidgets.QProgressBar(self.centralwidget)
+        self.progressBar.setGeometry(QtCore.QRect(245, 250, 601, 23))
+        self.progressBar.setProperty("value", 24)
+        self.progressBar.setObjectName("progressBar")
+        self.progressBar.hide()
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")

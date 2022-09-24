@@ -128,8 +128,7 @@ class comparison:
                 t.join()
                 
             try:
-                
-                signal.emit(str(i+1) +" of "+str(totalProcess)+" done.")
+                signal.emit(i, totalProcess)
             except Exception as e:
                 print(e)
                 pass
