@@ -3,34 +3,55 @@ from wsgiref import validate
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtGui import QIntValidator
 from PyQt6.QtWidgets import QMessageBox,QFileDialog
+from PyQt6.QtCore import QObject, QThread, pyqtSignal
 
 import image_categorisation_powered_by_OCR
 from validation import validator
 from OCRWindow import Ui_OCRWindow
 from backend.folder_processes import folder_processes
+from functools import partial
+
+
+class Worker(QObject):
+    finished = pyqtSignal()
+    progress = pyqtSignal(str)
+    errormessage = pyqtSignal(str)
+    
+    def alertMessage(self,message):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Icon.Warning)
+        msg.setText(message)
+        msg.setWindowTitle("Error")
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+        retval = msg.exec()
+    def categorise(self,ui):
+        
+        image_categorisation_powered_by_OCR.os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = ui.txtGoogleCredential.text()
+        image_folder = ui.txtImageFolder.text()
+        categories_txtfile = ui.txtCategories.text()
+        subProcessNumber = int(ui.txtSubprocessNumber.text())
+        lines_to_read = int(ui.txtLinesToRead.text())
+        accuracy_percentage = int(ui.txtAccPercentage.text())
+        error=image_categorisation_powered_by_OCR.comparison.multiprocessing_image_categorisation(image_folder,subProcessNumber,categories_txtfile,lines_to_read,accuracy_percentage,self.progress)
+        
+        if error:
+            raise error
+        
+
+    def run(self,ui):
+        """Long-running task."""
+        try:
+            
+            self.categorise(ui)
+            self.finished.emit() 
+        except Exception as e:
+            self.errormessage.emit(str(e))
+            self.finished.emit() 
+
 
 
 class Ui_MainWindow(object):
-    def categorise(self):
-        
-        image_categorisation_powered_by_OCR.os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = self.txtGoogleCredential.text()
-        image_folder = self.txtImageFolder.text()
-        categories_txtfile = self.txtCategories.text()
-        subProcessNumber = int(self.txtSubprocessNumber.text())
-        lines_to_read = int(self.txtLinesToRead.text())
-        accuracy_percentage = int(self.txtAccPercentage.text())
-
-        error=image_categorisation_powered_by_OCR.comparison.multiprocessing_image_categorisation(image_folder,subProcessNumber,categories_txtfile,lines_to_read,accuracy_percentage)
-        
-        if error:
-            self.alertMessage(str(error))
-        else:
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Icon.Information)
-            msg.setText("All image categorised")
-            msg.setWindowTitle("All done!")
-            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
-            retval = msg.exec()
+    
         
     def openOCRWindow(self):
         self.window = QtWidgets.QMainWindow()
@@ -72,9 +93,59 @@ class Ui_MainWindow(object):
         if flag:  
             
             self.recordData()
-            self.categorise()
-           
-           
+             # Step 2: Create a QThread object
+            self.thread = QThread()
+            # Step 3: Create a worker object
+            self.worker = Worker()
+            # Step 4: Move worker to the thread
+            self.worker.moveToThread(self.thread)
+            # Step 5: Connect signals and slots
+            
+            self.thread.started.connect(partial(self.worker.run,self))
+            self.worker.errormessage.connect(self.erroralert)
+            self.worker.progress.connect(self.loading)
+            self.worker.finished.connect(self.thread.quit)
+            self.worker.finished.connect(self.worker.deleteLater)
+            self.thread.finished.connect(self.thread.deleteLater)
+            
+            # Step 6: Start the thread
+            self.thread.start()
+
+            # Final resets
+            self.btnCategorise.setEnabled(False)
+            self.btnCategoryTxt.setEnabled(False)
+            self.btnGoogleJson.setEnabled(False)
+            self.btnImageFolder.setEnabled(False)
+            
+            self.thread.finished.connect(
+                self.txtProcessing.hide
+            )  
+            self.thread.finished.connect(
+                self.enableButtons
+            )
+            
+            self.thread.finished.connect(
+                self.alldone
+            )
+    def loading(self,message):
+        self.txtProcessing.show()
+        self.txtProcessing.setText(message)
+        
+    def erroralert(self,message):
+        self.alertMessage(message)
+    def alldone(self):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Icon.Information)
+        msg.setText("All image categorised")
+        msg.setWindowTitle("All done!")
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+        retval = msg.exec()   
+          
+    def enableButtons(self):
+        self.btnCategorise.setEnabled(True)
+        self.btnCategoryTxt.setEnabled(True)
+        self.btnGoogleJson.setEnabled(True)
+        self.btnImageFolder.setEnabled(True)
     def alertMessage(self,message):
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Icon.Warning)
@@ -99,21 +170,21 @@ class Ui_MainWindow(object):
         except:
             pass
         
-    def openFile(self,message,rule):
-        file = QFileDialog.getOpenFileName(None,message, "C:/", rule)
+    def openFile(self,message,rule,path):
+        file = QFileDialog.getOpenFileName(None,message, path, rule)
         return file
-    def openFolder(self,message,rule):
-        file = QtWidgets.QFileDialog.getExistingDirectory(None, message,"C:/")
+    def openFolder(self,message,path):
+        file = QtWidgets.QFileDialog.getExistingDirectory(None, message,path)
         return file
        
     def getCategoriseTxt(self,message,rule):
-        file = self.openFile(message,rule)
+        file = self.openFile(message,rule,self.txtCategories.text())
         self.txtCategories.setText(file[0])
     def getGoogleCredentialJson(self,message,rule):
-        file = self.openFile(message,rule)
+        file = self.openFile(message,rule,self.txtGoogleCredential.text())
         self.txtGoogleCredential.setText(file[0])
-    def getImageFolder(self,message,rule):
-        folder = self.openFolder(message,rule)
+    def getImageFolder(self,message):
+        folder = self.openFolder(message,self.txtImageFolder.text())
         
         self.txtImageFolder.setText(folder)
         
@@ -190,7 +261,7 @@ class Ui_MainWindow(object):
         self.txtImageFolder.setReadOnly(True)
         self.txtImageFolder.setObjectName("txtImageFolder")
         self.gridLayout.addWidget(self.txtImageFolder, 1, 1, 1, 1)
-        self.btnImageFolder = QtWidgets.QPushButton(self.widget, clicked= lambda: self.getImageFolder("Select image folder",""))
+        self.btnImageFolder = QtWidgets.QPushButton(self.widget, clicked= lambda: self.getImageFolder("Select image folder"))
         font = QtGui.QFont()
         font.setPointSize(12)
         self.btnImageFolder.setFont(font)
@@ -280,6 +351,15 @@ class Ui_MainWindow(object):
         self.txtAccPercentage.setFont(font)
         self.txtAccPercentage.setObjectName("txtAccPercentage")
         self.gridLayout.addWidget(self.txtAccPercentage, 5, 1, 1, 1)
+        self.txtProcessing = QtWidgets.QLineEdit(self.centralwidget)
+        self.txtProcessing.setGeometry(QtCore.QRect(290, 250, 481, 25))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.txtProcessing.setFont(font)
+        self.txtProcessing.setReadOnly(True)
+        self.txtProcessing.setPlaceholderText("")
+        self.txtProcessing.setObjectName("txtProcessing")
+        self.txtProcessing.hide()
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")

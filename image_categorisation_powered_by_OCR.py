@@ -88,7 +88,7 @@ class comparison:
             folder_processes.move_image_to_folder(image_path,image_with_no_text)      
         q.put(False)              
                          
-    def multiprocessing_image_categorisation(image_folder,subProcessNumber,categories_txtfile,lines_to_read,accuracy_percentage):
+    def multiprocessing_image_categorisation(image_folder,subProcessNumber,categories_txtfile,lines_to_read,accuracy_percentage,signal):
         categories = folder_processes.get_all_categories(categories_txtfile)
         folder_processes.generate_folders_base_on_categories(categories,image_folder)
         flag = True
@@ -103,9 +103,9 @@ class comparison:
         
         Input = iter(all_image_path_list)   
         nested_image_path_list = list(iter(lambda: tuple(islice(Input, subProcessNumber)), ())) # this code seperates a large list to the small tuples of the provided subProcessNumber 
-            
+        totalProcess = len(nested_image_path_list)   
         #async process    
-        for image_sub_list in nested_image_path_list:
+        for i,image_sub_list in enumerate(nested_image_path_list) :
             Pros = []
             q = multiprocessing.Queue()
             for image_path in image_sub_list:
@@ -126,6 +126,13 @@ class comparison:
                    
             for t in Pros: 
                 t.join()
+                
+            try:
+                
+                signal.emit(str(i) +" of "+str(totalProcess)+" done.")
+            except Exception as e:
+                print(e)
+                pass
             
            
         if not flag:    

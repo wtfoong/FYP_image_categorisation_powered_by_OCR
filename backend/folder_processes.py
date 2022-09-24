@@ -22,7 +22,7 @@ class folder_processes:
             
             shutil.move(str(image_path), new_path)
         except Exception as e:
-            print(e)
+            #print(e)
             pass
         
         
