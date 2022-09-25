@@ -86,12 +86,14 @@ class Ui_MainWindow(object):
         elif not validator.validateCategories_txt(self.txtCategories.text()):
             self.alertMessage("Category text file is empty!")
             flag = False
+        elif int(self.txtSubprocessNumber.text())<1:
+            self.alertMessage("Please make sure subprocess number is larger than 1!")
+            flag = False
         elif not validator.validateAccuracyPercentage(int(self.txtAccPercentage.text())):
             self.alertMessage("Please make sure accuracy percentage is in the range of 1 to 100!")
             flag = False
             
         if flag:  
-            
             self.recordData()
              # Step 2: Create a QThread object
             self.thread = QThread()
