@@ -93,7 +93,6 @@ class comparison:
         folder_processes.generate_folders_base_on_categories(categories,image_folder)
         flag = True
         error = None
-        
         all_image_path_list = image_processes.get_all_image_path(image_folder)
         
         try:
@@ -102,7 +101,8 @@ class comparison:
             return e
         
         Input = iter(all_image_path_list)   
-        nested_image_path_list = list(iter(lambda: tuple(islice(Input, subProcessNumber)), ())) # this code seperates a large list to the small tuples of the provided subProcessNumber 
+        # this code seperates a large list to the small tuples of the provided subProcessNumber 
+        nested_image_path_list = list(iter(lambda: tuple(islice(Input, subProcessNumber)), ())) 
         totalProcess = len(nested_image_path_list)   
         #async process    
         for i,image_sub_list in enumerate(nested_image_path_list) :
@@ -113,7 +113,6 @@ class comparison:
                 Pros.append(p1)
                 p1.start()
                 
-            
             for p in Pros:
                 if q.get():
                     error = q.get()
