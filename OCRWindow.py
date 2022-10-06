@@ -42,16 +42,16 @@ class Ui_OCRWindow(object):
         if flag:
             self.ocrImage()
         
-    def openFile(self,message,rule):
-        file = QFileDialog.getOpenFileName(None,message, "C:/", rule)
+    def openFile(self,message,rule,path):
+        file = QFileDialog.getOpenFileName(None,message, path, rule)
         return file
     
     def getGoogleCredentialJson(self,message,rule):
-        file = self.openFile(message,rule)
+        file = self.openFile(message,rule,self.txtGoogleCredential_2.text())
         self.txtGoogleCredential_2.setText(file[0])
     
     def getImageFile(self,message,rule):
-        file = self.openFile(message,rule)
+        file = self.openFile(message,rule,self.txtImage.text())
         self.txtImage.setText(file[0])
         
     def setupUi(self, OCRWindow, MainWindow):

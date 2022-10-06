@@ -78,7 +78,7 @@ class Ui_MainWindow(object):
         elif not validator.validatePath(self.txtCategories.text(),"Category text file path is not valid or the file does not exist!"):
             flag = False
         elif not validator.validateImageFolderPath(self.txtImageFolder.text()):
-            self.alertMessage("Image folder is empty!")
+            self.alertMessage("No image in folder path provided!")
             flag = False
         elif not validator.chkIfIstxtFile(self.txtCategories.text()):
             self.alertMessage("Category text file path does not lead to a text file!")
