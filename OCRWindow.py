@@ -56,7 +56,7 @@ class Ui_OCRWindow(object):
         
     def setupUi(self, OCRWindow, MainWindow):
         OCRWindow.setObjectName("OCRWindow")
-        OCRWindow.resize(1078, 350)
+        OCRWindow.setFixedSize(1078, 350)
         OCRWindow.setUnifiedTitleAndToolBarOnMac(True)
         self.centralwidget = QtWidgets.QWidget(OCRWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -103,6 +103,7 @@ class Ui_OCRWindow(object):
         self.txtGoogleCredential_2.setFont(font)
         self.txtGoogleCredential_2.setReadOnly(True)
         self.txtGoogleCredential_2.setObjectName("txtGoogleCredential_2")
+        self.txtGoogleCredential_2.setEnabled(False)
         self.gridLayout.addWidget(self.txtGoogleCredential_2, 0, 1, 1, 1)
         self.label_8 = QtWidgets.QLabel(self.widget)
         self.label_8.setEnabled(True)
@@ -122,6 +123,7 @@ class Ui_OCRWindow(object):
         self.txtImage.setFont(font)
         self.txtImage.setReadOnly(True)
         self.txtImage.setObjectName("txtImage")
+        self.txtImage.setEnabled(False)
         self.gridLayout.addWidget(self.txtImage, 1, 1, 1, 1)
         self.btnImageFile = QtWidgets.QPushButton(self.widget, clicked= lambda: self.getImageFile("Select image","Image file (*.png *.jpg *.gif *.jpeg)"))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Fixed)

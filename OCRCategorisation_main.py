@@ -16,13 +16,6 @@ class Worker(QObject):
     progress = pyqtSignal(int,int)
     errormessage = pyqtSignal(str)
     
-    def alertMessage(self,message):
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Icon.Warning)
-        msg.setText(message)
-        msg.setWindowTitle("Error")
-        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
-        retval = msg.exec()
     def categorise(self,ui,lines_to_read,acc_percentage):
         
         image_categorisation_powered_by_OCR.os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = ui.txtGoogleCredential.text()
@@ -31,8 +24,6 @@ class Worker(QObject):
         subProcessNumber = int(ui.txtSubprocessNumber.text())
         lines_to_read = lines_to_read
         accuracy_percentage = acc_percentage
-        print(lines_to_read)
-        print(accuracy_percentage)
         error=image_categorisation_powered_by_OCR.comparison.multiprocessing_image_categorisation(image_folder,subProcessNumber,categories_txtfile,lines_to_read,accuracy_percentage,self.progress)
         
         if error:
@@ -57,11 +48,11 @@ class Ui_MainWindow(object):
         
     def openAdvanceSettings(self):
 
-        if int(self.ui.txtLinesToRead.text()) !=0:
-                self.lines_to_read = int(self.ui.txtLinesToRead.text())
-        if int(self.ui.txtAccPercentage.text()) !=75:
-            self.acc_percentage = int(self.ui.txtAccPercentage.text())
-        self.window.show()
+        if int(self.adui.txtLinesToRead.text()) !=0:
+                self.lines_to_read = int(self.adui.txtLinesToRead.text())
+        if int(self.adui.txtAccPercentage.text()) !=75:
+            self.acc_percentage = int(self.adui.txtAccPercentage.text())
+        self.adwindow.show()
         MainWindow.hide()
         
     def openOCRWindow(self):
@@ -100,6 +91,16 @@ class Ui_MainWindow(object):
         elif int(self.txtSubprocessNumber.text())<1:
             self.alertMessage("Please make sure subprocess number is larger than 1!")
             flag = False
+        elif int(self.txtSubprocessNumber.text())>100:
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QMessageBox.Icon.Warning)
+            msg.setText("Subprocess number higher than 100 may cause the computer to lag and even crash, are you sure you want to continue?")
+            msg.setWindowTitle("Error")
+            msg.setStandardButtons(QMessageBox.StandardButton.Yes|QMessageBox.StandardButton.No)
+            reply = msg.exec()
+            if reply == QMessageBox.StandardButton.No:
+                flag = False
+           
 
             
         if flag:  
@@ -113,13 +114,14 @@ class Ui_MainWindow(object):
             # Step 5: Connect signals and slots
 
             
-            self.thread.started.connect(partial(self.worker.run,self,int(self.ui.txtLinesToRead.text()),int(self.ui.txtAccPercentage.text())))
+            self.thread.started.connect(partial(self.worker.run,self,int(self.adui.txtLinesToRead.text()),int(self.adui.txtAccPercentage.text())))
             self.worker.errormessage.connect(self.erroralert)
             self.worker.errormessage.connect(self.thread.quit)
             self.worker.errormessage.connect(self.worker.deleteLater)
             self.worker.progress.connect(self.loading)
             self.worker.finished.connect(self.thread.quit)
             self.worker.finished.connect(self.worker.deleteLater)
+            self.worker.finished.connect(self.checkNotSureImage)
             self.worker.finished.connect(self.alldone)
             self.thread.finished.connect(self.thread.deleteLater)
             
@@ -134,6 +136,7 @@ class Ui_MainWindow(object):
             self.btnGoogleJson.setEnabled(False)
             self.btnImageFolder.setEnabled(False)
             self.txtSubprocessNumber.setEnabled(False)
+            self.btnAdvanceSettings.setEnabled(False)
 
             
             self.thread.finished.connect(
@@ -156,13 +159,18 @@ class Ui_MainWindow(object):
         
     def erroralert(self,message):
         self.alertMessage(message)
+        
     def alldone(self):
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Icon.Information)
         msg.setText("All image categorised")
         msg.setWindowTitle("All done!")
         msg.setStandardButtons(QMessageBox.StandardButton.Ok)
-        retval = msg.exec()   
+        retval = msg.exec()  
+        
+    def checkNotSureImage(self):
+        if validator.validateImageFolderPath(self.txtImageFolder.text()+"/not_sure_image"):
+            self.alertMessage("There are images in the not_sure_image folder, you can use the OCR single image function to determine why the image is not categorised")
           
     def enableUI(self):
         self.btnCategorise.setEnabled(True)
@@ -170,6 +178,7 @@ class Ui_MainWindow(object):
         self.btnGoogleJson.setEnabled(True)
         self.btnImageFolder.setEnabled(True)
         self.txtSubprocessNumber.setEnabled(True)
+        self.btnAdvanceSettings.setEnabled(True)
 
         
     def alertMessage(self,message):
@@ -214,7 +223,7 @@ class Ui_MainWindow(object):
         
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1081, 353)
+        MainWindow.setFixedSize(1081, 353)
         MainWindow.setAutoFillBackground(True)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -377,11 +386,11 @@ class Ui_MainWindow(object):
         self.txtCategories.setDisabled(True)
         self.retranslateUi(MainWindow)
         self.readData()
-        self.window = QtWidgets.QMainWindow()
-        self.ui = Ui_AdvanceSettings()
-        self.ui.setupUi(self.window,MainWindow)
-        self.ui.txtLinesToRead.setText(str(self.lines_to_read))
-        self.ui.txtAccPercentage.setText(str(self.acc_percentage))
+        self.adwindow = QtWidgets.QMainWindow()
+        self.adui = Ui_AdvanceSettings()
+        self.adui.setupUi(self.adwindow,MainWindow)
+        self.adui.txtLinesToRead.setText(str(self.lines_to_read))
+        self.adui.txtAccPercentage.setText(str(self.acc_percentage))
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -393,7 +402,7 @@ class Ui_MainWindow(object):
         self.txtGoogleCredential.setPlaceholderText(_translate("MainWindow", "File path to google credential json file"))
         self.btnGoogleJson.setText(_translate("MainWindow", "..."))
         self.label_3.setText(_translate("MainWindow", "Image folder path"))
-        self.txtImageFolder.setPlaceholderText(_translate("MainWindow", "Path to images to be categorised"))
+        self.txtImageFolder.setPlaceholderText(_translate("MainWindow", "Path to images to be categorised, only supports png, jpg, gif, jpeg"))
         self.btnImageFolder.setText(_translate("MainWindow", "..."))
         self.label_2.setText(_translate("MainWindow", "Categories text file path"))
         self.txtCategories.setPlaceholderText(_translate("MainWindow", "Path to text file that stores categories"))

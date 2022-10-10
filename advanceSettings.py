@@ -16,13 +16,15 @@ class Ui_AdvanceSettings(object):
             self.alertMessage("Please make sure accuracy percentage is in the range of 1 to 100!")
             flag = False
             
-        if flag:
-            
+        if flag:            
             # main_w.lines_to_read=int(self.txtLinesToRead.text())
             # main_w.acc_percentage=int(self.txtAccPercentage.text())  
             main_w.show()
             AdvanceSettings.hide()
-        
+      
+    def cancel(self):
+        self.txtLinesToRead.setText("0")
+        self.txtAccPercentage.setText("75")
         
         
     def alertMessage(self,message):
@@ -36,7 +38,7 @@ class Ui_AdvanceSettings(object):
     
     def setupUi(self, AdvanceSettings, MainWindow):
         AdvanceSettings.setObjectName("AdvanceSettings")
-        AdvanceSettings.resize(1002, 192)
+        AdvanceSettings.setFixedSize(1002, 192)
         self.centralwidget = QtWidgets.QWidget(AdvanceSettings)
         self.centralwidget.setObjectName("centralwidget")
         self.txtLinesToRead = QtWidgets.QLineEdit(self.centralwidget)
@@ -83,6 +85,12 @@ class Ui_AdvanceSettings(object):
         font.setPointSize(12)
         self.btnConfirmAdvanceSetting.setFont(font)
         self.btnConfirmAdvanceSetting.setObjectName("btnConfirmAdvanceSetting")
+        self.btnCancel = QtWidgets.QPushButton(self.centralwidget, clicked = lambda: self.cancel())
+        self.btnCancel.setGeometry(QtCore.QRect(240, 100, 141, 61))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.btnCancel.setFont(font)
+        self.btnCancel.setObjectName("btnCancel")
         AdvanceSettings.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(AdvanceSettings)
         self.statusbar.setObjectName("statusbar")
@@ -99,6 +107,8 @@ class Ui_AdvanceSettings(object):
         self.label_6.setText(_translate("AdvanceSettings", "Accuracy Percentage"))
         self.txtAccPercentage.setPlaceholderText(_translate("AdvanceSettings", "How accurate the OCR data need to be in compare to the category, decides accuracy of the result"))
         self.btnConfirmAdvanceSetting.setText(_translate("AdvanceSettings", "Confirm"))
+        self.btnCancel.setText(_translate("AdvanceSettings", "Cancel"))
+        
 
 
 if __name__ == "__main__":
