@@ -102,12 +102,12 @@ class Ui_AdvanceSettings(object):
     def retranslateUi(self, AdvanceSettings):
         _translate = QtCore.QCoreApplication.translate
         AdvanceSettings.setWindowTitle(_translate("AdvanceSettings", "Advance Settings"))
-        self.txtLinesToRead.setPlaceholderText(_translate("AdvanceSettings", "Number of lines to read from OCR data and compare to category, leave blank to read all"))
+        self.txtLinesToRead.setPlaceholderText(_translate("AdvanceSettings", "Number of lines to read from OCR data and compare to category, put 0 to read all"))
         self.label_5.setText(_translate("AdvanceSettings", "Lines to read"))
         self.label_6.setText(_translate("AdvanceSettings", "Accuracy Percentage"))
         self.txtAccPercentage.setPlaceholderText(_translate("AdvanceSettings", "How accurate the OCR data need to be in compare to the category, decides accuracy of the result"))
         self.btnConfirmAdvanceSetting.setText(_translate("AdvanceSettings", "Confirm"))
-        self.btnCancel.setText(_translate("AdvanceSettings", "Cancel"))
+        self.btnCancel.setText(_translate("AdvanceSettings", "Reset"))
         
 
 
