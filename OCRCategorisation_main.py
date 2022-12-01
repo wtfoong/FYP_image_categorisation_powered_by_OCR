@@ -24,23 +24,22 @@ class Worker(QObject):
         subProcessNumber = int(ui.txtSubprocessNumber.text())
         lines_to_read = lines_to_read
         accuracy_percentage = acc_percentage
-        error=image_categorisation_powered_by_OCR.comparison.multiprocessing_image_categorisation(image_folder,subProcessNumber,categories_txtfile,lines_to_read,accuracy_percentage,self.progress)
-        
+        error=image_categorisation_powered_by_OCR.comparison.multiprocessing_image_categorisation(image_folder,subProcessNumber,categories_txtfile,lines_to_read,accuracy_percentage,self.progress,ui.thread)
         if error:
             raise error
         
-
     def run(self,ui,lines_to_read,acc_percentage):
         """Long-running task."""
         try:
-            
             self.categorise(ui,lines_to_read,acc_percentage)
-            self.finished.emit() 
+            if ui.thread.isInterruptionRequested():
+                
+                self.errormessage.emit("Image categorisation process is stopped!")
+            else:
+                self.finished.emit() 
         except Exception as e:
             self.errormessage.emit(str(e))
             
-
-
 
 class Ui_MainWindow(object):
     lines_to_read = 0
@@ -131,7 +130,8 @@ class Ui_MainWindow(object):
             self.thread.start()
 
             # Final resets
-            self.btnCategorise.setEnabled(False)
+            self.btnCategorise.hide()
+            self.btnStop.show()
             self.btnCategoryTxt.setEnabled(False)
             self.btnGoogleJson.setEnabled(False)
             self.btnImageFolder.setEnabled(False)
@@ -159,6 +159,13 @@ class Ui_MainWindow(object):
         
     def erroralert(self,message):
         self.alertMessage(message)
+    
+    def stop(self):
+        self.thread.requestInterruption()
+        self.thread.quit()
+        self.worker.deleteLater()
+        self.thread.deleteLater()
+        self.thread.wait()
         
     def alldone(self):
         msg = QMessageBox()
@@ -173,7 +180,8 @@ class Ui_MainWindow(object):
             self.alertMessage("There are images in the not_sure_image folder, you can use the OCR single image function to determine why the image is not categorised")
           
     def enableUI(self):
-        self.btnCategorise.setEnabled(True)
+        self.btnCategorise.show()
+        self.btnStop.hide()
         self.btnCategoryTxt.setEnabled(True)
         self.btnGoogleJson.setEnabled(True)
         self.btnImageFolder.setEnabled(True)
@@ -239,6 +247,13 @@ class Ui_MainWindow(object):
         font.setPointSize(12)
         self.btnCategorise.setFont(font)
         self.btnCategorise.setObjectName("btnCategorise")
+        self.btnStop = QtWidgets.QPushButton(self.centralwidget, clicked = lambda:self.stop())
+        self.btnStop.setGeometry(QtCore.QRect(870, 250, 141, 61))
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.btnStop.setFont(font)
+        self.btnStop.setObjectName("btnStop")
+        self.btnStop.hide()
         self.layoutWidget = QtWidgets.QWidget(self.centralwidget)
         self.layoutWidget.setGeometry(QtCore.QRect(10, 10, 1051, 188))
         self.layoutWidget.setObjectName("layoutWidget")
@@ -398,6 +413,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "Image Categorisor"))
         self.btnOCRWindow.setText(_translate("MainWindow", "OCR single image"))
         self.btnCategorise.setText(_translate("MainWindow", "Categorise"))
+        self.btnStop.setText(_translate("MainWindow", "Stop"))
         self.label.setText(_translate("MainWindow", "Google Credential json file path"))
         self.txtGoogleCredential.setPlaceholderText(_translate("MainWindow", "File path to google credential json file"))
         self.btnGoogleJson.setText(_translate("MainWindow", "..."))

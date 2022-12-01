@@ -88,7 +88,7 @@ class comparison:
             folder_processes.move_image_to_folder(image_path,image_with_no_text)      
         q.put(False)              
                          
-    def multiprocessing_image_categorisation(image_folder,subProcessNumber,categories_txtfile,lines_to_read,accuracy_percentage,signal):
+    def multiprocessing_image_categorisation(image_folder,subProcessNumber,categories_txtfile,lines_to_read,accuracy_percentage,signal,thread):
         categories = folder_processes.get_all_categories(categories_txtfile)
         folder_processes.generate_folders_base_on_categories(categories,image_folder)
         flag = True
@@ -106,6 +106,9 @@ class comparison:
         totalProcess = len(nested_image_path_list)   
         #async process    
         for i,image_sub_list in enumerate(nested_image_path_list) :
+            if(thread.isInterruptionRequested()):
+                thread.quit()
+                return 
             Pros = []
             q = multiprocessing.Queue()
             for image_path in image_sub_list:
@@ -131,8 +134,7 @@ class comparison:
             except Exception as e:
                 #print(e)
                 pass
-            
-           
+               
         if not flag:    
             return error
         else: return None
