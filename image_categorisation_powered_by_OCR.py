@@ -144,8 +144,9 @@ class comparison:
 if __name__ == '__main__':     
     begin = time.time()
     signal = None
-    comparison.multiprocessing_image_categorisation(image_folder,subProcessNumber,categories_txtfile,lines_to_read,accuracy_percentage,signal)
-   
+    #comparison.multiprocessing_image_categorisation(image_folder,subProcessNumber,categories_txtfile,lines_to_read,accuracy_percentage,signal)
+    # test = ['one','two','three']
+    # print(process.extractOne('onononono test adsas', test,scorer=fuzz.partial_ratio, score_cutoff=80))
     #print(comparison.detect_text('D:/g2g/canada_model/CA(for_testing)/Alberta/not_sure_image/747427_340815.jpg'))
     end = time.time()
     print(f"Total runtime of the program is {end - begin}")

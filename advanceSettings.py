@@ -107,7 +107,7 @@ class Ui_AdvanceSettings(object):
         self.label_6.setText(_translate("AdvanceSettings", "Accuracy Percentage"))
         self.txtAccPercentage.setPlaceholderText(_translate("AdvanceSettings", "How accurate the OCR data need to be in compare to the category, decides accuracy of the result"))
         self.btnConfirmAdvanceSetting.setText(_translate("AdvanceSettings", "Confirm"))
-        self.btnCancel.setText(_translate("AdvanceSettings", "Reset"))
+        self.btnCancel.setText(_translate("AdvanceSettings", "Reset to Default"))
         
 
 
